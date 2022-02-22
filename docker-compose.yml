@@ -1,0 +1,54 @@
+version: "3"
+services:
+
+  front:
+    build:
+      context: .
+      dockerfile: ./front/dev.Dockerfile
+    image: othello/front:dev
+    container_name: othello_front
+    volumes:
+      - $PWD/front:/root/src
+    ports:
+      - "3000:3000"
+    networks:
+      - othello_net
+    # entrypoint:
+    #   - sh
+    #   - start.sh
+    tty: true
+  board:
+    build:
+      context: .
+      dockerfile: ./board/dev.Dockerfile
+    image: othello/board:dev
+    container_name: othello_board
+    volumes:
+      - $PWD/board:/go/src
+    networks:
+      - othello_net
+    # entrypoint:
+    #   - go
+    #   - run
+    #   - main.go      
+    tty: true
+  cp:
+    build:
+      context: .
+      dockerfile: ./cp/dev.Dockerfile
+    image: othello/cp:dev
+    container_name: othello_cp
+    volumes:
+      - $PWD/cp/main.py:/workspace/main.py
+      - $PWD/cp/test_main.py:/workspace/test_main.py
+    networks:
+      - othello_net
+    # entrypoint:
+    #   - python
+    #   - main.py
+    tty: true
+
+networks:
+  othello_net:
+    name: othello_net
+    driver: bridge
