@@ -1,0 +1,43 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: othello-front
+  labels:
+    app: othello-front
+spec:
+  selector:
+    app: othello-front
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3000
+  type: LoadBalancer
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: othello-front
+  labels:
+    app: othello-front
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: othello-front
+  template:
+    metadata:
+      labels:
+        app: othello-front
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "front"
+        dapr.io/app-port: "3000"
+        dapr.io/config: "appconfig"
+    spec:
+      containers:
+      - name: othello-front
+        image: othello/front:prod
+        ports:
+        - containerPort: 3000
+        imagePullPolicy: Never

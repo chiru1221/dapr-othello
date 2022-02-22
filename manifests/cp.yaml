@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cpapi
+  labels:
+    app: cp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cp
+  template:
+    metadata:
+      labels:
+        app: cp
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "cpapi"
+        dapr.io/app-port: "5000"
+        dapr.io/config: "appconfig"
+    spec:
+      containers:
+      - name: cp
+        image: othello/cp:prod
+        ports:
+        - containerPort: 5000
+        imagePullPolicy: Never
