@@ -13,10 +13,15 @@ import './top.css'
 const Top = () => {
     const [select, setSelect] = useState<GameState>(
         {
-            player: 'User',
+            player: 'Pre-User',
             bw: 'b',
+            score: {
+                b: 2,
+                w: 2
+            },
             cp: {
-                level: 1
+                level: 1,
+                bw: 'w'
             }
         }
     )
@@ -33,20 +38,25 @@ const Top = () => {
                 <FormLabel>Attaks</FormLabel>
                 <RadioGroup
                     aria-labelledby="radio-buttons-group-label"
-                    defaultValue={'User'}
+                    defaultValue={'Pre-User'}
                     name="radio-buttons-group"
                     onChange={(_, value) => {
                         let newPlayer: string = value
                         setSelect({
                             player: newPlayer,
                             bw: 'b',
+                            score: {
+                                b: 2,
+                                w: 2
+                            },
                             cp: {
-                                level: select.cp.level
+                                level: select.cp.level,
+                                bw: (newPlayer === 'CP')? 'b': 'w'
                             }
                         })
                     }}
                 >
-                    <FormControlLabel value={'User'} control={<Radio />} label="First" />
+                    <FormControlLabel value={'Pre-User'} control={<Radio />} label="First" />
                     <FormControlLabel value={'CP'} control={<Radio />} label="Second" />
                 </RadioGroup>
 
@@ -60,8 +70,13 @@ const Top = () => {
                         setSelect({
                             player: select.player,
                             bw: 'b',
+                            score: {
+                                b: 2,
+                                w: 2
+                            },
                             cp: {
-                                level: newCpLevel
+                                level: newCpLevel,
+                                bw: select.cp.bw
                             }
                         })
                     }}
@@ -72,12 +87,10 @@ const Top = () => {
                 </RadioGroup>
             </FormControl>
             
-            {/* <Link to='/game' state={select}> */}
             <div onClick={onStart} className='game-start'>
                 <PlayArrowIcon />
                 <div>Start</div>
             </div>
-            {/* </Link> */}
         </div>
     )
 }
