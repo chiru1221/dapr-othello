@@ -105,10 +105,11 @@ func (board *Board) reverseSearch() {
 					}
 					history = append(history, xy{xSearch, ySearch})
 					if s := squares[xSearch][ySearch]; s == stone {
-						// reverse using stock
 						for _, point := range history {
 							squares[point.x][point.y] = stone
 						}
+						break
+					} else if s == 'n' {
 						break
 					}
 				}
@@ -156,7 +157,7 @@ func isPutable(stone byte, squares [][]byte, i, j int) bool {
 					// space is found -> no putable
 					if s := squares[xSearch][ySearch]; s == stone {
 						return true
-					} else if s == 'n' {
+					} else if s != reverseStone {
 						break
 					}
 				}
@@ -168,24 +169,6 @@ func isPutable(stone byte, squares [][]byte, i, j int) bool {
 
 func (board *Board) putableSearch() {
 	squares := toByteSquare(board.Squares)
-	// for _, dig := range [][]int{{2, 5}, {1, 6}, {0, 7}} {
-	// 	for _, i := range dig {
-	// 		for j := dig[0]; j <= dig[1]; j++ {
-	// 			if i == j {
-	// 				if isPutable([]byte(board.Stone)[0], squares, i, j) {
-	// 					squares[i][j] = 'p'
-	// 				}
-	// 			} else {
-	// 				if isPutable([]byte(board.Stone)[0], squares, i, j) {
-	// 					squares[i][j] = 'p'
-	// 				}
-	// 				if isPutable([]byte(board.Stone)[0], squares, j, i) {
-	// 					squares[j][i] = 'p'
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
 	for i := 0; i < len(squares); i++ {
 		for j := 0; j < len(squares[0]); j++ {
 			if isPutable([]byte(board.Stone)[0], squares, i, j) {

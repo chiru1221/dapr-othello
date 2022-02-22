@@ -171,6 +171,24 @@ func TestReverseSearch(t *testing.T) {
 			},
 			wantResult: "nnnnnnnnnnnnnnnnnnnnnnnnbnnbbbnnnnnwbnnnnnnnnnnnnnnnnnnnnnnnnnnn",
 		},
+		{
+			input: Board{
+				Stone:   "b",
+				X: 0,
+				Y: 0,
+				Squares: "bwwnwwwbnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn",
+			},
+			wantResult: "bwwnwwwbnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn",
+		},
+		{
+			input: Board{
+				Stone:   "b",
+				X: 0,
+				Y: 0,
+				Squares: "bwbnwwwbnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn",
+			},
+			wantResult: "bbbnwwwbnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn",
+		},
 	}
 	
 	for _, tc := range testCases {
@@ -208,6 +226,13 @@ func TestPutableSearch(t *testing.T) {
 				Squares: "nnnnnnnnnnnnbnnnnnnnnnnnnnnbwnnnnnnwbnnnnnnnnnnnnnnnnnnnnnnnnnnn",
 			},
 			wantResult: "nnnnnnnnnnnnbnnnnnnpnnnnnnpbwnnnnnnwbpnnnnnnpnnnnnnnnnnnnnnnnnnn",
+		},
+		{
+			input: Board{
+				Stone:   "b",
+				Squares: "nnnnnnnnnnbnnnnnnnnbnnnnnnnwbbnnnnnwbwnnnnnnwnnnnnnnnwnnnnnnnnnn",
+			},
+			wantResult: "nnnnnnnnnnbnnnnnnnpbnnnnnnpwbbnnnnpwbwpnnnppwppnnnnnpwnnnnnnnnnn",
 		},
 	}
 	
