@@ -1,12 +1,14 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
-	"net/http"
+	"context"
+	"net"
 
-	"github.com/gorilla/mux"
+	"google.golang.org/grpc"
+	pb "example.com/othello/board"
 )
+// protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative board/board.proto
 
 type Board struct {
 	Stone   string `json:"stone"`
@@ -40,7 +42,7 @@ func toStringSquare(bytes [][]byte) string {
 	return squares
 }
 
-func isOutOfRange(xSearch, ySearch int) bool {
+func isOutOfRange(xSearch, ySearch int32) bool {
 	if xSearch < 0 || xSearch > 7 {
 		return true
 	} else if ySearch < 0 || ySearch > 7 {
@@ -64,12 +66,16 @@ func clearP(squares [][]byte) [][]byte {
 	main processes
 */
 
-func (board *Board) reverse() {
+type server struct {
+	pb.UnimplementedBoardApiServer
+}
+
+func reverse(board *pb.Board) (string) {
 	squares := toByteSquare(board.Squares)
 	squares = clearP(squares)
 	var (
-		direction        = []int{-1, 0, 1}
-		xSearch, ySearch int
+		direction        = []int32{-1, 0, 1}
+		xSearch, ySearch int32
 		reverseStone     byte
 		stone            = []byte(board.Stone)[0]
 	)
@@ -80,8 +86,8 @@ func (board *Board) reverse() {
 	}
 
 	type xy struct {
-		x int
-		y int
+		x int32
+		y int32
 	}
 
 	for _, xDirection := range direction {
@@ -98,8 +104,8 @@ func (board *Board) reverse() {
 			history := []xy{}
 			if s := squares[xSearch][ySearch]; s == reverseStone {
 				for k := 1; k < len(squares); k++ {
-					xSearch = board.X + xDirection*k
-					ySearch = board.Y + yDirection*k
+					xSearch = board.X + xDirection*int32(k)
+					ySearch = board.Y + yDirection*int32(k)
 					if isOutOfRange(xSearch, ySearch) {
 						break
 					}
@@ -116,17 +122,17 @@ func (board *Board) reverse() {
 			}
 		}
 	}
-	board.Squares = toStringSquare(squares)
+	return toStringSquare(squares)
 }
 
-func isPutable(stone byte, squares [][]byte, i, j int) bool {
+func isPutable(stone byte, squares [][]byte, i, j int32) bool {
 	if s := squares[i][j]; s == 'b' || s == 'w' {
 		return false
 	}
 
 	var (
-		direction        = []int{-1, 0, 1}
-		xSearch, ySearch int
+		direction        = []int32{-1, 0, 1}
+		xSearch, ySearch int32
 		reverseStone     byte
 	)
 	if stone == 'b' {
@@ -148,8 +154,8 @@ func isPutable(stone byte, squares [][]byte, i, j int) bool {
 
 			if s := squares[xSearch][ySearch]; s == reverseStone {
 				for k := 2; k < len(squares); k++ {
-					xSearch = i + xDirection*k
-					ySearch = j + yDirection*k
+					xSearch = i + xDirection*int32(k)
+					ySearch = j + yDirection*int32(k)
 					if isOutOfRange(xSearch, ySearch) {
 						break
 					}
@@ -167,75 +173,39 @@ func isPutable(stone byte, squares [][]byte, i, j int) bool {
 	return false
 }
 
-func (board *Board) putableSearch() {
+
+func putableSearch(board *pb.Board) string {
 	squares := toByteSquare(board.Squares)
 	for i := 0; i < len(squares); i++ {
 		for j := 0; j < len(squares[0]); j++ {
-			if isPutable([]byte(board.Stone)[0], squares, i, j) {
+			if isPutable([]byte(board.Stone)[0], squares, int32(i), int32(j)) {
 				squares[i][j] = 'p'
 			}
 		}
 	}
 
-	board.Squares = toStringSquare(squares)
+	return toStringSquare(squares)
 }
 
-func putableHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	var (
-		board        Board
-		putableBoard Res
-	)
-
-	err := json.NewDecoder(r.Body).Decode(&board)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	if board.Stone != "b" && board.Stone != "w" {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	} else if len(board.Squares) != 64 {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	
-	board.putableSearch()
-	putableBoard.Squares = board.Squares
-	json.NewEncoder(w).Encode(putableBoard)
+func (s *server) Putable(ctx context.Context, in *pb.Board) (*pb.Res, error) {
+	squares := putableSearch(in)
+	return &pb.Res{Squares: squares}, nil	
 }
 
-func reverseHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	var (
-		board        Board
-		reverseBoard Res
-	)
-
-	err := json.NewDecoder(r.Body).Decode(&board)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	if board.Stone != "b" && board.Stone != "w" {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	} else if len(board.Squares) != 64 {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	board.reverse()
-	reverseBoard.Squares = board.Squares
-	json.NewEncoder(w).Encode(reverseBoard)
+func (s *server) Reverse(ctx context.Context, in *pb.Board) (*pb.Res, error) {
+	squares := reverse(in)
+	return &pb.Res{Squares: squares}, nil
 }
 
 func main() {
-	router := mux.NewRouter()
-	log.Println("start server")
-	router.HandleFunc("/putable", putableHandler).Methods(http.MethodPost, http.MethodOptions)
-	router.HandleFunc("/reverse", reverseHandler).Methods(http.MethodPost, http.MethodOptions)
-	log.Fatal(http.ListenAndServe(":8080", router))
+	lis, err := net.Listen("tcp", ":8080")
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+	s := grpc.NewServer()
+	pb.RegisterBoardApiServer(s, &server{})
+	log.Printf("server listening at %v", lis.Addr())
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
 }

@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+// option go_package = "google.golang.org/grpc/examples/helloworld/helloworld";
+option go_package = "example.com/othello/board";
+// option java_multiple_files = true;
+// option java_package = "io.grpc.examples.helloworld";
+// option java_outer_classname = "HelloWorldProto";
+
+package board;
+
+// The greeting service definition.
+service BoardApi {
+  // Sends a greeting
+  rpc Putable (Board) returns (Res) {}
+  rpc Reverse (Board) returns (Res) {}
+}
+
+// The request message containing the user's name.
+message Board {
+  string stone = 1;
+  int32 x = 2;
+  int32 y = 3;
+  string squares = 4;
+}
+
+// The response message containing the greetings
+message Res {
+  string squares = 1;
+}

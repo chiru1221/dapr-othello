@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package cp;
+
+// The greeting service definition.
+service CpApi {
+  // Sends a greeting
+  rpc Attack (Cp) returns (Res) {}
+}
+
+// The request message containing the user's name.
+message Cp {
+  int32 level = 1;
+  string stone = 2;
+  string squares = 3;
+}
+
+// The response message containing the greetings
+message Res {
+  int32 x = 1;
+  int32 y = 2;
+}

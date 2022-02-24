@@ -9,6 +9,7 @@ services:
     container_name: othello_front
     volumes:
       - $PWD/front:/root/src
+      - $PWD/proto:/root/src/proto
     ports:
       - "3000:3000"
     networks:
@@ -21,10 +22,11 @@ services:
     build:
       context: .
       dockerfile: ./board/dev.Dockerfile
-    image: othello/board:dev
+    image: othello/board:grpc-dev
     container_name: othello_board
     volumes:
       - $PWD/board:/go/src
+      - $PWD/proto:/go/src/board
     networks:
       - othello_net
     # entrypoint:
@@ -36,11 +38,16 @@ services:
     build:
       context: .
       dockerfile: ./cp/dev.Dockerfile
-    image: othello/cp:dev
+    image: othello/cp:grpc-dev
     container_name: othello_cp
     volumes:
       - $PWD/cp/main.py:/workspace/main.py
       - $PWD/cp/test_main.py:/workspace/test_main.py
+      - $PWD/cp/board_pb2.py:/workspace/board_pb2.py
+      - $PWD/cp/board_pb2_grpc.py:/workspace/board_pb2_grpc.py
+      - $PWD/cp/cp_pb2.py:/workspace/cp_pb2.py
+      - $PWD/cp/cp_pb2_grpc.py:/workspace/cp_pb2_grpc.py
+      - $PWD/proto:/workspace/proto
     networks:
       - othello_net
     # entrypoint:

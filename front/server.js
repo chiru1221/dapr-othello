@@ -1,40 +1,54 @@
 const express = require('express');
 const path = require('path');
 const request = require('request');
+const grpc = require('@grpc/grpc-js');
+const protoLoader = require('@grpc/proto-loader');
+
+const BOARD_PROTO_PATH = '/root/src/proto/board.proto';
+const CP_PROTO_PATH = '/root/src/proto/cp.proto';
+
+const createPakageDefinition = (filename) => {
+    return protoLoader.loadSync(
+        filename,
+        {keepCase: true,
+         longs: String,
+         enums: String,
+         defaults: true,
+         oneofs: true
+    });
+}
+
+const board_proto = grpc.loadPackageDefinition(
+    createPakageDefinition(BOARD_PROTO_PATH)
+).board;
+const cp_proto = grpc.loadPackageDefinition(
+    createPakageDefinition(CP_PROTO_PATH)
+).cp;
+
+const boardClient = new board_proto.BoardApi('board:8080', grpc.credentials.createInsecure());
+const cpClient = new cp_proto.CpApi('cp:5000', grpc.credentials.createInsecure());
 
 const app = express();
-
+app.use(express.json());
 const port = 3000;
-const prod = process.env.NODE_ENV === 'production'
-const daprPort = process.env.DAPR_HTTP_PORT || 3500;
-const boardApi = (prod)? `http://localhost:${daprPort}/v1.0/invoke/boardapi/method`: 'http://board:8080';
-const cpApi = (prod)? `http://localhost:${daprPort}/v1.0/invoke/cpapi/method`: 'http://cp:5000';
-
-// The name of the state store is specified in the components yaml file. 
-// For this sample, state store name is specified in the file at: https://github.com/dapr/quickstarts/blob/master/hello-kubernetes/deploy/redis.yaml#L4
-// const stateStoreName = `statestore`;
-// const stateUrl = `http://localhost:${daprPort}/v1.0/state/${stateStoreName}`;
-
 
 app.post('/putable', async (req, res) => {
-    // req.pipe(request(`http://board:8080/putable`)).pipe(res);
-    // req.pipe(request(`${daprUrl}/boardapi/method/putable`)).pipe(res);
-    req.pipe(request(`${boardApi}/putable`)).pipe(res);
+    boardClient.putable(req.body, function(err, response) {
+        res.send(response);
+    });
 })
 
 app.post('/reverse', async (req, res) => {
-    // req.pipe(request(`http://board:8080/reverse`)).pipe(res);
-    // req.pipe(request(`${daprUrl}/boardapi/method/reverse`)).pipe(res);
-    req.pipe(request(`${boardApi}/reverse`)).pipe(res);
+    boardClient.reverse(req.body, function(err, response) {
+        res.send(response);
+    });
 })
 
 app.post('/cp', async (req, res) => {
-    // req.pipe(request(`http://cp:5000`)).pipe(res);
-    // req.pipe(request(`${daprUrl}/cpapi/method`)).pipe(res);
-    req.pipe(request(`${cpApi}/`)).pipe(res);
+    cpClient.attack(req.body, function(err, response) {
+        res.send(response);
+    })
 })
-
-
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'othello/build')));
@@ -43,4 +57,4 @@ app.get('*', function (_req, res) {
     res.sendFile(path.join(__dirname, 'othello/build', 'index.html'));
 });
 
-app.listen(process.env.PORT || port, () => console.log(`Listening on port ${port}!`));
+app.listen(port, () => console.log(`Listening on port ${port}!`));

@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "@grpc/grpc-js": "^1.5.6",
+    "@grpc/proto-loader": "^0.6.9",
     "@types/jest": "^27.4.0",
     "@types/node": "^17.0.16",
     "@types/react": "^17.0.39",
