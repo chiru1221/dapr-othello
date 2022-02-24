@@ -1,12 +1,4 @@
-# ToDo
-- [front] write test code
-- [front] apply gRPC
-- [back] apply gRPC
-# ToDo Optional
-- [front] improve ui/ux
-- [back] peformance tuning
-
-# Flow
+# How to run
 1. Install `docker`, `kubernetes` and `dapr`
     - https://docs.docker.com/get-docker/
     - https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
@@ -29,6 +21,6 @@
 2. Uncomment entrypoint and run below command
     - `docker-compose up -d --build`
 
-
 # Related Repository
+Use this souce code as computer Lv3
 - https://github.com/suragnair/alpha-zero-general

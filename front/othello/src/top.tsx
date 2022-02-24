@@ -31,7 +31,6 @@ const Top = () => {
         navigate("/game", {state: select});
     }
 
-
     return (
         <div className='top'>
             <FormControl>

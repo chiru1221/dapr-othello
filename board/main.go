@@ -64,7 +64,7 @@ func clearP(squares [][]byte) [][]byte {
 	main processes
 */
 
-func (board *Board) reverseSearch() {
+func (board *Board) reverse() {
 	squares := toByteSquare(board.Squares)
 	squares = clearP(squares)
 	var (
@@ -188,8 +188,19 @@ func putableHandler(w http.ResponseWriter, r *http.Request) {
 		putableBoard Res
 	)
 
-	json.NewDecoder(r.Body).Decode(&board)
-	// Validate request
+	err := json.NewDecoder(r.Body).Decode(&board)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	if board.Stone != "b" && board.Stone != "w" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	} else if len(board.Squares) != 64 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	
 	board.putableSearch()
 	putableBoard.Squares = board.Squares
 	json.NewEncoder(w).Encode(putableBoard)
@@ -203,9 +214,20 @@ func reverseHandler(w http.ResponseWriter, r *http.Request) {
 		reverseBoard Res
 	)
 
-	json.NewDecoder(r.Body).Decode(&board)
-	// Validate request
-	board.reverseSearch()
+	err := json.NewDecoder(r.Body).Decode(&board)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	if board.Stone != "b" && board.Stone != "w" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	} else if len(board.Squares) != 64 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	board.reverse()
 	reverseBoard.Squares = board.Squares
 	json.NewEncoder(w).Encode(reverseBoard)
 }

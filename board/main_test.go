@@ -146,7 +146,7 @@ func TestClearP(t *testing.T) {
 	main process test
 */
 
-func TestReverseSearch(t *testing.T) {
+func TestReverse(t *testing.T) {
 	type testCase struct {
 		input      Board
 		wantResult string
@@ -192,7 +192,7 @@ func TestReverseSearch(t *testing.T) {
 	}
 	
 	for _, tc := range testCases {
-		tc.input.reverseSearch()
+		tc.input.reverse()
 		if tc.input.Squares != tc.wantResult {
 			t.Errorf("Expected: %v, but got: %v", tc.wantResult, tc.input.Squares)
 		}
@@ -258,6 +258,10 @@ func TestPutableHandler(t *testing.T) {
 			},
 			wantResult: 200,
 		},
+		{
+			input: Board{},
+			wantResult: 400,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -265,7 +269,6 @@ func TestPutableHandler(t *testing.T) {
 		r := httptest.NewRequest(http.MethodPost, "https://example.com",
 			bytes.NewBuffer(body))
 		r.Header.Add("Content-Type", "application/json")
-		// server := httptest.NewServer(http.HandlerFunc(putableHandler))
 		w := httptest.NewRecorder()
 		putableHandler(w, r)
 		if w.Code != tc.wantResult {
@@ -290,7 +293,10 @@ func TestReverseHandler(t *testing.T) {
 			},
 			wantResult: 200,
 		},
-
+		{
+			input: Board{},
+			wantResult: 400,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -298,7 +304,6 @@ func TestReverseHandler(t *testing.T) {
 		r := httptest.NewRequest(http.MethodPost, "https://example.com",
 			bytes.NewBuffer(body))
 		r.Header.Add("Content-Type", "application/json")
-		// server := httptest.NewServer(http.HandlerFunc(putableHandler))
 		w := httptest.NewRecorder()
 		reverseHandler(w, r)
 		if w.Code != tc.wantResult {
