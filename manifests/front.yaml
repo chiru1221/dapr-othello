@@ -33,11 +33,12 @@ spec:
         dapr.io/enabled: "true"
         dapr.io/app-id: "front"
         dapr.io/app-port: "3000"
+        dapr.io/app-protocol: "grpc"
         dapr.io/config: "appconfig"
     spec:
       containers:
       - name: othello-front
-        image: othello/front:prod
+        image: othello/front:latest
         ports:
         - containerPort: 3000
         imagePullPolicy: Never

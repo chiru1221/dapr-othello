@@ -17,11 +17,12 @@ spec:
         dapr.io/enabled: "true"
         dapr.io/app-id: "boardapi"
         dapr.io/app-port: "8080"
+        dapr.io/app-protocol: "grpc"
         dapr.io/config: "appconfig"
     spec:
       containers:
       - name: board
-        image: othello/board:prod
+        image: othello/board:latest
         ports:
         - containerPort: 8080
         imagePullPolicy: Never

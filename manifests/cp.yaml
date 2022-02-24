@@ -17,11 +17,12 @@ spec:
         dapr.io/enabled: "true"
         dapr.io/app-id: "cpapi"
         dapr.io/app-port: "5000"
+        dapr.io/app-protocol: "grpc"
         dapr.io/config: "appconfig"
     spec:
       containers:
       - name: cp
-        image: othello/cp:prod
+        image: othello/cp:latest
         ports:
         - containerPort: 5000
         imagePullPolicy: Never
