@@ -7,3 +7,7 @@ spec:
     samplingRate: "1"
     zipkin:
       endpointAddress: "http://zipkin.default.svc.cluster.local:9411/api/v2/spans"
+  mtls:
+    enabled: true
+    workloadCertTTL: "24h"
+    allowedClockSkew: "15m"
