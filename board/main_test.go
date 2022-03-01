@@ -1,11 +1,13 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
-	"net/http"
-	"net/http/httptest"
+	"context"
+	"errors"
 	"testing"
+
+	pb "example.com/othello/board"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 /*
@@ -92,18 +94,18 @@ func TestToStringSquare(t *testing.T) {
 
 func TestIsOutOfRange(t *testing.T) {
 	type testCase struct {
-		input []int
+		input      []int
 		wantResult bool
 	}
 
-	testCases := []testCase {
+	testCases := []testCase{
 		{input: []int{0, 7}, wantResult: false},
 		{input: []int{0, 8}, wantResult: true},
 		{input: []int{8, 8}, wantResult: true},
 	}
 
 	for _, tc := range testCases {
-		result := isOutOfRange(tc.input[0], tc.input[1])
+		result := isOutOfRange(int32(tc.input[0]), int32(tc.input[1]))
 		if result != tc.wantResult {
 			t.Errorf("Expected: %v, but got: %v", tc.wantResult, result)
 		}
@@ -148,52 +150,52 @@ func TestClearP(t *testing.T) {
 
 func TestReverse(t *testing.T) {
 	type testCase struct {
-		input      Board
+		input      *pb.Board
 		wantResult string
 	}
 
 	testCases := []testCase{
 		{
-			input: Board{
+			input: &pb.Board{
 				Stone:   "b",
-				X: 3,
-				Y: 5,
+				X:       3,
+				Y:       5,
 				Squares: "nnnnnnnnnnnnnnnnnnnnnnnnnnnbwbnnnnnwbnnnnnnnnnnnnnnnnnnnnnnnnnnn",
 			},
 			wantResult: "nnnnnnnnnnnnnnnnnnnnnnnnnnnbbbnnnnnwbnnnnnnnnnnnnnnnnnnnnnnnnnnn",
 		},
 		{
-			input: Board{
+			input: &pb.Board{
 				Stone:   "b",
-				X: 3,
-				Y: 5,
+				X:       3,
+				Y:       5,
 				Squares: "nnnnnnnnnnnnnnnnnnnnnnnnbnnbwbnnnnnwbnnnnnnnnnnnnnnnnnnnnnnnnnnn",
 			},
 			wantResult: "nnnnnnnnnnnnnnnnnnnnnnnnbnnbbbnnnnnwbnnnnnnnnnnnnnnnnnnnnnnnnnnn",
 		},
 		{
-			input: Board{
+			input: &pb.Board{
 				Stone:   "b",
-				X: 0,
-				Y: 0,
+				X:       0,
+				Y:       0,
 				Squares: "bwwnwwwbnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn",
 			},
 			wantResult: "bwwnwwwbnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn",
 		},
 		{
-			input: Board{
+			input: &pb.Board{
 				Stone:   "b",
-				X: 0,
-				Y: 0,
+				X:       0,
+				Y:       0,
 				Squares: "bwbnwwwbnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn",
 			},
 			wantResult: "bbbnwwwbnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn",
 		},
 	}
-	
+
 	for _, tc := range testCases {
-		tc.input.reverse()
-		if tc.input.Squares != tc.wantResult {
+		result := reverse(tc.input)
+		if result != tc.wantResult {
 			t.Errorf("Expected: %v, but got: %v", tc.wantResult, tc.input.Squares)
 		}
 	}
@@ -201,113 +203,125 @@ func TestReverse(t *testing.T) {
 
 func TestPutableSearch(t *testing.T) {
 	type testCase struct {
-		input      Board
+		input      *pb.Board
 		wantResult string
 	}
 
 	testCases := []testCase{
 		{
-			input: Board{
+			input: &pb.Board{
 				Stone:   "b",
 				Squares: "nnnnnnnnnnnnnnnnnnnnnnnnnnnbwnnnnnnwbnnnnnnnnnnnnnnnnnnnnnnnnnnn",
 			},
 			wantResult: "nnnnnnnnnnnnnnnnnnnnpnnnnnnbwpnnnnpwbnnnnnnpnnnnnnnnnnnnnnnnnnnn",
 		},
 		{
-			input: Board{
+			input: &pb.Board{
 				Stone:   "b",
 				Squares: "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn",
 			},
 			wantResult: "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn",
 		},
 		{
-			input: Board{
+			input: &pb.Board{
 				Stone:   "w",
 				Squares: "nnnnnnnnnnnnbnnnnnnnnnnnnnnbwnnnnnnwbnnnnnnnnnnnnnnnnnnnnnnnnnnn",
 			},
 			wantResult: "nnnnnnnnnnnnbnnnnnnpnnnnnnpbwnnnnnnwbpnnnnnnpnnnnnnnnnnnnnnnnnnn",
 		},
 		{
-			input: Board{
+			input: &pb.Board{
 				Stone:   "b",
 				Squares: "nnnnnnnnnnbnnnnnnnnbnnnnnnnwbbnnnnnwbwnnnnnnwnnnnnnnnwnnnnnnnnnn",
 			},
 			wantResult: "nnnnnnnnnnbnnnnnnnpbnnnnnnpwbbnnnnpwbwpnnnppwppnnnnnpwnnnnnnnnnn",
 		},
 	}
-	
+
 	for _, tc := range testCases {
-		tc.input.putableSearch()
-		if tc.input.Squares != tc.wantResult {
+		result := putableSearch(tc.input)
+		if result != tc.wantResult {
 			t.Errorf("Expected: %v, but got: %v", tc.wantResult, tc.input.Squares)
 		}
 	}
 }
 
-func TestPutableHandler(t *testing.T) {
+func TestPutableServer(t *testing.T) {
 	type testCase struct {
-		input      Board
-		wantResult int
+		input      *pb.Board
+		wantResult error
 	}
 
 	testCases := []testCase{
 		{
-			input: Board{
+			input: &pb.Board{
 				Stone:   "b",
 				Squares: "nnnnnnnnnnnnnnnnnnnnnnnnnnnbwnnnnnnwbnnnnnnnnnnnnnnnnnnnnnnnnnnn",
 			},
-			wantResult: 200,
+			wantResult: nil,
 		},
 		{
-			input: Board{},
-			wantResult: 400,
+			input: &pb.Board{
+				Squares: "nnnnnnnnnnnnnnnnnnnnnnnnnnnbwnnnnnnwbnnnnnnnnnnnnnnnnnnnnnnnnnnn",
+			},
+			wantResult: status.Error(codes.InvalidArgument, "Stone is empty"),
+		},
+		{
+			input: &pb.Board{
+				Stone: "b",
+			},
+			wantResult: status.Error(codes.InvalidArgument, "Squares is empty"),
 		},
 	}
 
+	s := server{}
 	for _, tc := range testCases {
-		body, _ := json.Marshal(tc.input)
-		r := httptest.NewRequest(http.MethodPost, "https://example.com",
-			bytes.NewBuffer(body))
-		r.Header.Add("Content-Type", "application/json")
-		w := httptest.NewRecorder()
-		putableHandler(w, r)
-		if w.Code != tc.wantResult {
-			t.Errorf("Expected: %v, but got: %v", tc.wantResult, w.Code)
+		_, err := s.Putable(context.Background(), tc.input)
+		if !errors.Is(err, tc.wantResult) {
+			t.Errorf("Expected: %v, but got: %v", tc.wantResult, err)
 		}
 	}
 }
 
-func TestReverseHandler(t *testing.T) {
+func TestReverseServer(t *testing.T) {
 	type testCase struct {
-		input      Board
-		wantResult int
+		input      *pb.Board
+		wantResult error
 	}
 
 	testCases := []testCase{
 		{
-			input: Board{
+			input: &pb.Board{
 				Stone:   "b",
-				X: 3,
-				Y: 5,
+				X:       3,
+				Y:       5,
 				Squares: "nnnnnnnnnnnnnnnnnnnnnnnnnnnbwbnnnnnwbnnnnnnnnnnnnnnnnnnnnnnnnnnn",
 			},
-			wantResult: 200,
+			wantResult: nil,
 		},
 		{
-			input: Board{},
-			wantResult: 400,
+			input: &pb.Board{
+				X:       3,
+				Y:       5,
+				Squares: "nnnnnnnnnnnnnnnnnnnnnnnnnnnbwbnnnnnwbnnnnnnnnnnnnnnnnnnnnnnnnnnn",
+			},
+			wantResult: status.Error(codes.InvalidArgument, "Stone is empty"),
+		},
+		{
+			input: &pb.Board{
+				Stone: "b",
+				X:     3,
+				Y:     5,
+			},
+			wantResult: status.Error(codes.InvalidArgument, "Squares is empty"),
 		},
 	}
 
+	s := server{}
 	for _, tc := range testCases {
-		body, _ := json.Marshal(tc.input)
-		r := httptest.NewRequest(http.MethodPost, "https://example.com",
-			bytes.NewBuffer(body))
-		r.Header.Add("Content-Type", "application/json")
-		w := httptest.NewRecorder()
-		reverseHandler(w, r)
-		if w.Code != tc.wantResult {
-			t.Errorf("Expected: %v, but got: %v", tc.wantResult, w.Code)
+		_, err := s.Reverse(context.Background(), tc.input)
+		if !errors.Is(err, tc.wantResult) {
+			t.Errorf("Expected: %v, but got: %v", tc.wantResult, err)
 		}
 	}
 }

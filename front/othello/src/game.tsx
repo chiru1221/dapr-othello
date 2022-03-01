@@ -40,7 +40,7 @@ const renderSquare = (square: string, isIn: boolean) => {
     } else if (square === 'w') {
         sx.color = 'white';
     } else if (square === 'p') {
-        sx.color = 'cyan';
+        sx.color = 'gray';
     }
     sx.fontSize = '4vh';
 
@@ -51,12 +51,8 @@ const renderSquare = (square: string, isIn: boolean) => {
     ):(
         <CircleIcon sx={sx} />
     );
-    // timeout={{enter: 1000}} 
     
     return <div className='square'>
-        {/* <Fade in={isIn} style={{transitionDelay: '0ms'}} timeout={{enter: 3000}}>
-            <CircleIcon sx={sx} />
-        </Fade> */}
         {circle}
     </div>;
 }

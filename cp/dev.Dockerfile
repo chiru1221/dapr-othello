@@ -8,7 +8,7 @@ COPY ./cp/alpha-zero-general/NeuralNet.py /workspace/NeuralNet.py
 COPY ./cp/alpha-zero-general/pretrained_models/othello/pytorch/8x8_100checkpoints_best.pth.tar \
 /workspace/8x8_100checkpoints_best.pth.tar
 COPY ./cp/alpha-zero-general/othello /workspace/othello
-RUN pip install flask flask_cors pytest grpcio grpcio-tools
+RUN pip install flask flask_cors pytest pytest-mock grpcio grpcio-tools
 
 ENV PYTHON_ENV=development
 EXPOSE 5000

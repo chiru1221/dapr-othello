@@ -1,26 +1,18 @@
 package main
 
 import (
-	"log"
 	"context"
+	"log"
 	"net"
 
-	"google.golang.org/grpc"
 	pb "example.com/othello/board"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
+
 // create files related grpc
 // protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative board/board.proto
-
-type Board struct {
-	Stone   string `json:"stone"`
-	X       int    `json:"x"`
-	Y       int    `json:"y"`
-	Squares string `json:"squares"`
-}
-
-type Res struct {
-	Squares string `json:"squares"`
-}
 
 /*
 	utils methods
@@ -71,7 +63,7 @@ type server struct {
 	pb.UnimplementedBoardApiServer
 }
 
-func reverse(board *pb.Board) (string) {
+func reverse(board *pb.Board) string {
 	squares := toByteSquare(board.Squares)
 	squares = clearP(squares)
 	var (
@@ -174,7 +166,6 @@ func isPutable(stone byte, squares [][]byte, i, j int32) bool {
 	return false
 }
 
-
 func putableSearch(board *pb.Board) string {
 	squares := toByteSquare(board.Squares)
 	for i := 0; i < len(squares); i++ {
@@ -189,11 +180,21 @@ func putableSearch(board *pb.Board) string {
 }
 
 func (s *server) Putable(ctx context.Context, in *pb.Board) (*pb.Res, error) {
+	if in.Stone == "" {
+		return nil, status.Error(codes.InvalidArgument, "Stone is empty")
+	} else if in.Squares == "" {
+		return nil, status.Error(codes.InvalidArgument, "Squares is empty")
+	}
 	squares := putableSearch(in)
-	return &pb.Res{Squares: squares}, nil	
+	return &pb.Res{Squares: squares}, nil
 }
 
 func (s *server) Reverse(ctx context.Context, in *pb.Board) (*pb.Res, error) {
+	if in.Stone == "" {
+		return nil, status.Error(codes.InvalidArgument, "Stone is empty")
+	} else if in.Squares == "" {
+		return nil, status.Error(codes.InvalidArgument, "Squares is empty")
+	}
 	squares := reverse(in)
 	return &pb.Res{Squares: squares}, nil
 }
