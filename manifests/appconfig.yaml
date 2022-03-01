@@ -10,3 +10,7 @@ spec:
   features:
     - name: proxy.grpc
       enabled: true
+  mtls:
+    enabled: true
+    workloadCertTTL: "24h"
+    allowedClockSkew: "15m"
