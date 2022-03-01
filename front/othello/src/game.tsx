@@ -176,7 +176,7 @@ const Board = async (
     const preBoard = board.board;
 
     // is game end?
-    if (!board.board.includes('n')) {
+    if (!board.board.includes('n') && !board.board.includes('p')) {
         const newUser = 'End';
         setGame({
             player: newUser,
