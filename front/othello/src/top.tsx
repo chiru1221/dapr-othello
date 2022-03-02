@@ -34,7 +34,7 @@ const Top = () => {
     return (
         <div className='top'>
             <FormControl>
-                <FormLabel>Attaks</FormLabel>
+                <FormLabel color="success" >Attaks</FormLabel>
                 <RadioGroup
                     aria-labelledby="radio-buttons-group-label"
                     defaultValue={'Pre-User'}
@@ -55,11 +55,11 @@ const Top = () => {
                         })
                     }}
                 >
-                    <FormControlLabel value={'Pre-User'} control={<Radio />} label="First" />
-                    <FormControlLabel value={'CP'} control={<Radio />} label="Second" />
+                    <FormControlLabel value={'Pre-User'} control={<Radio color="success" />} label="First" />
+                    <FormControlLabel value={'CP'} control={<Radio color="success" />} label="Second" />
                 </RadioGroup>
 
-                <FormLabel>Level</FormLabel>
+                <FormLabel color="success">Level</FormLabel>
                 <RadioGroup
                     aria-labelledby="radio-buttons-group-label"
                     defaultValue={1}
@@ -80,9 +80,9 @@ const Top = () => {
                         })
                     }}
                 >
-                    <FormControlLabel value={1} control={<Radio />} label="Lv. 1" />
-                    <FormControlLabel value={2} control={<Radio />} label="Lv. 2" />
-                    <FormControlLabel value={3} control={<Radio />} label="Lv. 3" />
+                    <FormControlLabel value={1} control={<Radio color="success" />} label="Lv. 1" />
+                    <FormControlLabel value={2} control={<Radio color="success" />} label="Lv. 2" />
+                    <FormControlLabel value={3} control={<Radio color="success" />} label="Lv. 3" />
                 </RadioGroup>
             </FormControl>
             
