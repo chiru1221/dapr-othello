@@ -4,6 +4,7 @@
     justify-content: center;
     flex-direction: column;
     height: 100vh;
+    background: radial-gradient(transparent 0%, lightgray 50%, lightgray 100%);
 }
 
 .game-start {
@@ -15,4 +16,5 @@
 
 .game-start:hover {
     cursor: pointer;
+    color: green;
 }
