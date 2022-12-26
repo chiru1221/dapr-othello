@@ -1,6 +1,6 @@
-yarn
+# yarn
 cd othello/
-yarn
+# yarn
 yarn build
 cd ../
 node server.js
